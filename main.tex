@@ -1,0 +1,312 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath, amssymb, bm, fancyhdr, sectsty, dsfont, mathtools}
+\usepackage{xcolor}
+\usepackage[margin=0.5in]{geometry}
+
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+\newcommand\E[1]{\mathbb{E}\left[#1\right]}
+\newcommand\Es[2]{\mathbb{E}_{#1}\left[#2\right]}
+\newcommand\KL[1]{D_\mathrm{KL}\left[#1\right]}
+\newcommand{\ELBO}{\mathrm{ELBO}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Cor}{\mathrm{Cor}}
+
+% Bold stuff
+\newcommand{\ba}{\mathbf{a}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\bc}{\mathbf{c}}
+\newcommand{\bd}{\mathbf{d}}
+\newcommand{\be}{\mathbf{e}}
+\newcommand{\bg}{\mathbf{g}}
+\newcommand{\bh}{\mathbf{h}}
+\newcommand{\br}{\mathbf{r}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bv}{\mathbf{v}}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bz}{\mathbf{z}}
+
+\newcommand{\bA}{\mathbf{A}}
+\newcommand{\bF}{\mathbf{F}}
+\newcommand{\bO}{\mathbf{O}}
+\newcommand{\bT}{\mathbf{T}}
+
+% mathcal stuff
+\newcommand{\mcB}{\mathcal{B}}
+\newcommand{\mcC}{\mathcal{C}}
+\newcommand{\mcD}{\mathcal{D}}
+\newcommand{\mcE}{\mathcal{E}}
+\newcommand{\mcG}{\mathcal{G}}
+\newcommand{\mcI}{\mathcal{I}}
+\newcommand{\mcJ}{\mathcal{J}}
+\newcommand{\mcL}{\mathcal{L}}
+\newcommand{\mcM}{\mathcal{M}}
+\newcommand{\mcN}{\mathcal{N}}
+\newcommand{\mcP}{\mathcal{P}}
+\newcommand{\mcR}{\mathcal{R}}
+\newcommand{\mcS}{\mathcal{S}}
+\newcommand{\mcT}{\mathcal{T}}
+\newcommand{\mcV}{\mathcal{V}}
+\newcommand{\mcX}{\mathcal{X}}
+\newcommand{\mcY}{\mathcal{Y}}
+\newcommand{\mcZ}{\mathcal{Z}}
+
+% math blackboard bold stuff
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+
+
+\title{Approximating Partition Functions}
+\author{Justin Chiu}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem setup}
+Given a globally normalized model,
+\begin{equation}
+    p(x\mid c) = \frac{e^{f(x, c)}}{Z},
+\end{equation}
+with partition function $Z = \sum_{x}e^{f(x, c)}$,
+our goal is to optimize 
+\begin{equation}
+\Es{x,c}{\log p(x \mid c)}
+\end{equation}
+via gradient-based methods.
+We have two paths to accomplish this:
+first, we could compute $\log p(x \mid c)$ and use automatic differentiation;
+second, we could instead directly compute the gradient.
+In the first case, we need to compute the partition function $Z$,
+which is intractable if there are many possible values of $x$.
+In the second case, the derivative 
+\begin{equation}
+\begin{aligned}
+\nabla \log p(x \mid c) &= \nabla f(x,c) - \nabla \log Z\\
+&= \nabla f(x,c) - \frac{1}{Z}\sum_{x'} \nabla e^{f(x', c)}\\
+&= \nabla f(x,c) - \sum_{x'} \frac{1}{Z}\nabla e^{f(x', c)}\\
+&= \nabla f(x,c) - \sum_{x'} \frac{e^{f(x',c)}}{Z}\nabla f(x', c)\\
+&= \nabla f(x,c) - \sum_{x'}p(x' \mid c) \nabla f(x', c),
+\end{aligned}
+\end{equation}
+still requires summing over $x$ (and computing $Z$).
+We will instead resort to approximations.
+We first consider differentiating through Monte Carlo approximations of $Z$, using the proposal distribution $q(x)$.
+For simplicity we will assume that $q$ has no learnable parameters.
+
+\section{Estimating $Z$}
+Rather than computing $Z$ through brute force,
+we can use Monte Carlo sampling to lower bound it by sub-sampling elements $x$.
+The Monte Carlo estimate of $Z$ is given by
+\begin{equation}
+Z = \sum_x \frac{q(x)}{q(x)}e^{f(x, c)} = \Es{q(x)}{\frac{e^{f(x, c)}}{q(x)}}.
+\end{equation}
+While this is a valid approach, we are often interested in optimizing the log probability of the correct label.
+The log transform of the probability de-emphasizes the contribution of 
+the most probable labels to the expected loss (or cross-entropy), 
+resulting in an emphasis on incorrectly classified examples.
+This is also an artifact of maximum entropy.
+
+Taking the log,
+\begin{equation}
+\begin{aligned}
+\log Z
+&=\log \Es{q(x)}{\frac{e^{f(x, c)}}{q(x)}}\\
+&\geq \Es{q(x)}{f(x, c) - \log(q(x))}\\
+&= \Es{q(x)}{f(x, c)} + H(q) \\
+&\geq \Es{q(x)}{f(x,c)}.
+\end{aligned}
+\end{equation}
+This yields the following biased finite-sample Monte Carlo estimator of $\log Z$,
+\begin{equation}
+\tilde{A} = \frac{1}{N}\sum_n f(x^{(n)}, c),
+\end{equation}
+for $x^{(i)}\sim_{\text{iid}} q(x)$.
+Plugging this into the estimand in the objective (ignoring the expectation wrt the true distribution):
+\begin{equation}
+\begin{aligned}
+\log p(x \mid c) &= f(x, c) - \log Z\\
+&\leq f(x,c) - \tilde{A} = \tilde\mcL,
+\end{aligned}
+\end{equation}
+giving us an upper bound on the true probability under the model.
+(i.e. it can only get easier to discriminate the true class when you have fewer negative classes, such as when you exclude the highest scoring incorrect class)
+
+For the resulting gradient estimator, we have
+\begin{equation}
+\nabla \tilde\mcL \approx \nabla f(x,c) - \nabla \tilde{A}.
+\end{equation}
+The derivative of $\tilde\mcL$ is given by
+\begin{equation}
+    \nabla \tilde\mcL
+    = \nabla \Es{q(x)}{f(x, c)}
+    = \Es{q(x)}{\nabla f(x,c) + f(x,c) \nabla \log q(x)}.
+\end{equation}
+If $q(x)$ does not depend on the parameters of interest,
+then the second term is equal to 0.
+Only in this case does differentiating through the estimator $\tilde{A}$ result in correct gradients:
+\begin{equation}
+\nabla \tilde{A} = \frac{1}{N} \sum_n \nabla f(x^{(n)}, c).
+\end{equation}
+In full, this yields
+\begin{equation}
+    \nabla \log p(x \mid c) \approx \nabla f(x, c) - \frac{1}{N} \sum_n \nabla f(x^{(n)}, c),
+\end{equation}
+where the approximation $\tilde{A}$ is weighted only by $q$.
+However, looking back at the true gradient, the gradients
+\begin{equation}
+    \nabla \log p(x \mid c) = \nabla f(x,c) - \sum_{x'}p(x' \mid c) \nabla f(x', c)
+\end{equation}
+are weighted by the model probability, $p(x' \mid c)$.
+This indicates the estimator $\tilde{A}$ may have large bias, especially if $q$ is different from $p$.
+Recall that we had $\log Z = \log\sum_x e^{f(x, c)}$, where log-sum-exp is a smooth approximation of the max operator.
+However, the estimator $\tilde{A} = \frac{1}{N}\sum_n f(x^{(n)}, c)$ is an average, resulting in qualitatively different behaviour from a max operator.
+In fact, estimating the partition function with $\tilde{A}$ results in an inconsistent gradient estimator.
+Fixing the model, as long as $q(x) \neq p(x)$ in distribution,
+then
+\begin{equation}
+    \Es{q}{\nabla f(x,c) - \nabla\tilde{A}} \neq \nabla \log p(x \mid c).
+\end{equation}
+We next propose a better estimator.
+
+\section{Reducing bias}
+We will again estimate $\log Z$, but this time with a better estimator, with properties that fix the error outlined above.
+Where did we go wrong?
+In the previous section, we made the following approximation
+\begin{equation}
+\begin{aligned}
+\log Z
+&=\log \Es{q(x)}{\frac{e^{f(x, c)}}{q(x)}}\\
+&\geq \Es{q(x)}{f(x, c) - \log(q(x))}\\
+&= \Es{q(x)}{f(x, c)} + H(q) \\
+&\geq \Es{q(x)}{f(x,c)}.
+\end{aligned}
+\end{equation}
+We have two sources of bias: the first is from Jensen's inequality,
+and the second is from ignoring the entropy.
+The second is benign as long as there are no learnable parameters in $q$.
+The application of Jensen's inequality is the worst offender in this case,
+and was a result of attempting to adapt to the log-transformation in a post-hoc manner.
+Jensen's inequality rendered the estimator inconsistent: we saw that the estimator $\tilde{A}$ was a mean as opposed to a max, resulting in asymptotically poor behaviour.
+Thankfully, there is a relatively simple fix.
+We can instead use a multi-sample approximation,
+with $S = \{x_1, \ldots, x_K\}$ a set of iid samples from $q(x)$:
+\begin{equation}
+\begin{aligned}
+\log Z
+&=\log \Es{q(x)}{\frac{e^{f(x, c)}}{q(x)}}\\
+&=\log \Es{S \sim q(x)}{
+    \Es{x_k \sim S}{\frac{e^{f(x_k, c)}}{q(x)} \Bigm\vert S}
+}\\
+&\geq\Es{S \sim q(x)}{
+    \log \Es{x_k \sim S}{\frac{e^{f(x_k, c)}}{q(x)} \Bigm\vert S}
+},
+\end{aligned}
+\end{equation}
+yielding the estimator
+\begin{equation}
+    \hat{A} = \log \frac{1}{N} \sum_n \frac{e^{f(x^{(n)},c)}}{q(x^{(n)})}.
+\end{equation}
+This is similar to the importance-weighted auto-encoder (IWAE) objective \citep{iwae}.
+
+We then have the loss
+\begin{equation}
+    \hat\mcL = f(x, c) - \hat{A} \geq \log p(x \mid c),
+\end{equation}
+with gradient estimator
+\begin{equation}
+\begin{aligned}
+\nabla\hat\mcL 
+&\approx \nabla f(x, c) - \nabla\hat{A}\\
+&= \nabla f(x, c) - \nabla\log \frac{1}{N}\sum_n\frac{e^{f(x^{(n)},c)}}{q(x^{(n)})}\\
+%&= \nabla f(x, c) - \nabla\left(\log %\sum_n\frac{e^{f(x^{(n)},c)}}{q(x^{(n)})} - \log N\right)\\
+&= \nabla f(x, c) - \frac{1}{\hat{Z}} \sum_n \nabla \frac{e^{f(x^{(n)},c)}}{q(x^{(n)})}\\
+&= \nabla f(x, c) - \frac{1}{\hat{Z}} \sum_n 
+    \frac{
+        e^{f(x^{(n)},c)}q(x^{(n)})\nabla f(x^{(n)},c)
+        - e^{f(x^{(n)}, c)}\nabla q(x^{(n)})
+    }{q(x^{(n)})^2}\\
+&= \nabla f(x, c) - \sum_n \hat{p}(x^{(n)} \mid c) \frac{
+        q(x^{(n)})\nabla f(x^{(n)},c)
+        - \nabla q(x^{(n)})
+    }{q(x^{(n)})^2}\\
+&= \nabla f(x, c) - \sum_n
+    \frac{\hat{p}(x^{(n)} \mid c)}{q(x^{(n)})} 
+    (\nabla f(x^{(n)},c)
+    - \nabla \log q(x^{(n)})),
+\end{aligned}
+\end{equation}
+where $\hat{Z} = \frac{1}{N}\sum_n \frac{e^{f(x^{(n)}, c)}}{q(x^{(n)})}$,
+and $\hat{p}(x \mid c) = \frac{e^{f(x, c)}}{\hat{Z}}$.
+Similarly to $\tilde{A}$, differentiating directly through the estimator $\hat{A}$ again will only be unbiased if $\nabla \log q(x) = 0$ (they do not share parameters).
+Given that assumption, we can make the following simplification:
+\begin{equation}
+\nabla\hat\mcL
+\approx \nabla f(x, c) - \sum_n \frac{\hat{p}(x^{(n)} \mid c)}{q(x^{(n)})} \nabla f(x^{(n)},c).
+\end{equation}
+While this gradient estimator is still not consistent, is it better than the previous one?
+We follow the analysis in \cite{zhang2021hardneg}, and examine the gradient when $q(x) = p(x \mid z)$:
+$$
+\tilde{Z}
+= \frac{1}{N}\sum_n \frac{e^{f(x^{(n)},c)}}{q(x^{(n)})}
+= \frac{1}{N}\sum_n \frac{e^{f(x^{(n)},c)}}{\frac{e^{f(x^{(n)},c)}}{Z}} = Z.
+$$
+As a result, the gradient of the log partition function estimator is
+$$
+\nabla\hat{A} = \frac{1}{N}\sum_n \nabla f(x^{(n)}, c),
+$$
+with $x^{(n)}\sim_{\text{iid}}p(x \mid c)$, resulting in an unbiased estimator.
+
+\paragraph{History} This estimator was used to estimate the partition functions of neural networks \citep{is-nn}.
+
+\section{Self-Normalized Importance Sampling}
+Rather than using a Monte Carlo approximation of the partition function, we can directly perform importance sampling to estimate
+
+\section{contrastive predictive coding}
+self normalized (double check if it is self-normalized IS) importance sampling of a specific noise distribution = maximum likelihood of density ratio estimate \citep{miml}. double check this was not known before. density ratio estimate seems interesting, i.e. importance sampling with a particular noise density will lead to the parameters having a particular representation at convergence
+
+\bibliography{bib}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

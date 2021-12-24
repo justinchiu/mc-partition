@@ -1,0 +1,141 @@
+
+
+@InProceedings{is-nn,
+  title = 	 {Quick Training of Probabilistic Neural Nets by Importance Sampling},
+  author =       {Bengio, Yoshua and Senecal, Jean-S{\'{e}}bastien},
+  booktitle = 	 {Proceedings of the Ninth International Workshop on Artificial Intelligence and Statistics},
+  pages = 	 {17--24},
+  year = 	 {2003},
+  editor = 	 {Bishop, Christopher M. and Frey, Brendan J.},
+  volume = 	 {R4},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {03--06 Jan},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/r4/bengio03a/bengio03a.pdf},
+  url = 	 {https://proceedings.mlr.press/r4/bengio03a.html},
+  abstract = 	 {Our previous work on statistical language modeling introduced the use of probabilistic feedforward neural networks to help dealing with the curse of dimensionality. Training this model by maximum likelihood however requires for each example to perform as many network passes as there are words in the vocabulary. Inspired by the contrastive divergence model, we propose and evaluate sampling-based methods which require network passes only for the observed "positive example" and a few sampled negative example words. A very significant speed-up is obtained with an adaptive importance sampling.},
+  note =         {Reissued by PMLR on 01 April 2021.}
+}
+
+@inproceedings{iwae,
+  author    = {Yuri Burda and
+               Roger B. Grosse and
+               Ruslan Salakhutdinov},
+  editor    = {Yoshua Bengio and
+               Yann LeCun},
+  title     = {Importance Weighted Autoencoders},
+  booktitle = {4th International Conference on Learning Representations, {ICLR} 2016,
+               San Juan, Puerto Rico, May 2-4, 2016, Conference Track Proceedings},
+  year      = {2016},
+  url       = {http://arxiv.org/abs/1509.00519},
+  timestamp = {Thu, 25 Jul 2019 14:25:37 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/BurdaGS15.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{cpc,
+  author    = {A{\"{a}}ron van den Oord and
+               Yazhe Li and
+               Oriol Vinyals},
+  title     = {Representation Learning with Contrastive Predictive Coding},
+  journal   = {CoRR},
+  volume    = {abs/1807.03748},
+  year      = {2018},
+  url       = {http://arxiv.org/abs/1807.03748},
+  eprinttype = {arXiv},
+  eprint    = {1807.03748},
+  timestamp = {Mon, 13 Aug 2018 16:48:25 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1807-03748.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{nce,
+  title={Noise-contrastive estimation: A new estimation principle for unnormalized statistical models},
+  author={Michael U. Gutmann and Aapo Hyv{\"a}rinen},
+  booktitle={AISTATS},
+  year={2010}
+}
+
+@article{rank-nce,
+  author    = {Zhuang Ma and
+               Michael Collins},
+  title     = {Noise Contrastive Estimation and Negative Sampling for Conditional
+               Models: Consistency and Statistical Efficiency},
+  journal   = {CoRR},
+  volume    = {abs/1809.01812},
+  year      = {2018},
+  url       = {http://arxiv.org/abs/1809.01812},
+  eprinttype = {arXiv},
+  eprint    = {1809.01812},
+  timestamp = {Fri, 05 Oct 2018 11:34:52 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1809-01812.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@InProceedings{css,
+  title = 	 {{Complementary Sum Sampling for Likelihood Approximation in Large Scale Classification}},
+  author = 	 {Botev, Aleksandar and Zheng, Bowen and Barber, David},
+  booktitle = 	 {Proceedings of the 20th International Conference on Artificial Intelligence and Statistics},
+  pages = 	 {1030--1038},
+  year = 	 {2017},
+  editor = 	 {Singh, Aarti and Zhu, Jerry},
+  volume = 	 {54},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {20--22 Apr},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v54/botev17a/botev17a.pdf},
+  url = 	 {https://proceedings.mlr.press/v54/botev17a.html},
+  abstract = 	 {We consider training probabilistic classifiers in the case that the number of classes is too large to perform exact normalisation over all classes.  We show that the source of high variance in standard sampling approximations is due to simply not including the correct class of the datapoint into the approximation. To account for this we explicitly sum over a subset of classes and sample the remaining. We show that this simple approach is competitive with recently introduced non likelihood-based approximations. }
+}
+@article{cd,
+  added-at = {2014-08-25T13:22:30.000+0200},
+  author = {Hinton, Geoffrey E},
+  biburl = {https://www.bibsonomy.org/bibtex/217f8205a21d79f279616aac193a09dbf/kappeld},
+  file = {:Hinton02.pdf:PDF},
+  groups = {public},
+  interhash = {05d99c7f30346f6644e5a803d4245660},
+  intrahash = {17f8205a21d79f279616aac193a09dbf},
+  journal = {Neural Computation},
+  keywords = {BoltzmannMachine},
+  number = 8,
+  pages = {1771--1800},
+  publisher = {MIT Press},
+  timestamp = {2014-08-25T13:22:30.000+0200},
+  title = {Training products of experts by minimizing contrastive divergence},
+  username = {kappeld},
+  volume = 14,
+  year = 2002
+}
+
+
+@InProceedings{miml,
+  title = 	 {Approximating Mutual Information by Maximum Likelihood Density Ratio Estimation},
+  author = 	 {Suzuki, Taiji and Sugiyama, Masashi and Sese, Jun and Kanamori, Takafumi},
+  booktitle = 	 {Proceedings of the Workshop on New Challenges for Feature Selection in Data  Mining and Knowledge Discovery at ECML/PKDD 2008},
+  pages = 	 {5--20},
+  year = 	 {2008},
+  editor = 	 {Saeys, Yvan and Liu, Huan and Inza, Iñaki and Wehenkel, Louis and Pee, Yves Van de},
+  volume = 	 {4},
+  series = 	 {Proceedings of Machine Learning Research},
+  address = 	 {Antwerp, Belgium},
+  month = 	 {15 Sep},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v4/suzuki08a/suzuki08a.pdf},
+  url = 	 {https://proceedings.mlr.press/v4/suzuki08a.html},
+  abstract = 	 {Mutual information is useful in various data processing tasks such as feature selection or independent component analysis. In this paper, we propose a new method of approximating mutual information based on maximum likelihood estimation of a density ratio function. Our method, called Maximum Likelihood Mutual Information (MLMI), has several attractive properties, e.g., density estimation is not involved, it is a single-shot procedure, the global optimal solution can be efficiently computed, and cross-validation is available for model selection. Numerical experiments show that MLMI compares favorably with existing methods.}
+}
+
+@article{zhang2021hardneg,
+  author    = {Wenzheng Zhang and
+               Karl Stratos},
+  title     = {Understanding Hard Negatives in Noise Contrastive Estimation},
+  journal   = {CoRR},
+  volume    = {abs/2104.06245},
+  year      = {2021},
+  url       = {https://arxiv.org/abs/2104.06245},
+  eprinttype = {arXiv},
+  eprint    = {2104.06245},
+  timestamp = {Mon, 19 Apr 2021 16:45:47 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-2104-06245.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
